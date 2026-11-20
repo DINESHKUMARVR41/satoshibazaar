@@ -56,7 +56,7 @@ class ProductCreate(BaseModel):
     merchant_id: int
     name: str
     category: str = "General"
-    price_sats: int
+    price_sats: int = Field(ge=1, le=10000, description="Per-unit sandbox listing price, capped at 10,000 sats")
     quantity_available: int
     description: str = ""
     is_demo: bool = True
@@ -150,6 +150,15 @@ class InvoiceCreateRequest(BaseModel):
     description: str = ""
     # Kept optional for older clients; the backend-selected PAYMENT_MODE is authoritative.
     is_demo: Optional[bool] = None
+
+
+class AlbyWalletConnectRequest(BaseModel):
+    buyer_url: str
+    merchant_url: str
+
+
+class PaymentApprovalRequest(BaseModel):
+    approve: bool
 
 
 class MerchantSettlementRequest(BaseModel):

@@ -12,7 +12,7 @@ PAYMENT_MODES = {"demo", "testnet", "live", "alby_sandbox"}
 
 
 def active_payment_mode() -> str:
-    mode = os.getenv("PAYMENT_MODE", "alby_sandbox").strip().lower()
+    mode = os.getenv("PAYMENT_MODE", "demo").strip().lower()
     if mode not in PAYMENT_MODES:
         raise RuntimeError("PAYMENT_MODE must be exactly demo, testnet, live, or alby_sandbox.")
     return mode
@@ -190,6 +190,9 @@ def build_provider(mode: str | None = None):
     selected = mode or active_payment_mode()
     if selected == "demo":
         return DemoPaymentProvider()
+    if selected == "alby_sandbox":
+        from services.alby_sandbox import AlbySandboxPaymentProvider
+        return AlbySandboxPaymentProvider()
     test_url = os.getenv("LNBITS_TESTNET_URL", "").rstrip("/").lower()
     live_url = os.getenv("LNBITS_LIVE_URL", "").rstrip("/").lower()
     test_keys = {os.getenv("LNBITS_TESTNET_INVOICE_KEY", ""), os.getenv("LNBITS_TESTNET_ADMIN_KEY", "")} - {""}
@@ -202,7 +205,4 @@ def build_provider(mode: str | None = None):
         return TestnetPaymentProvider()
     if selected == "live":
         return LivePaymentProvider()
-    if selected == "alby_sandbox":
-        from services.alby_sandbox import AlbySandboxPaymentProvider
-        return AlbySandboxPaymentProvider()
     raise RuntimeError("PAYMENT_MODE must be exactly demo, testnet, live, or alby_sandbox.")

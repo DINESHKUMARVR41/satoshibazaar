@@ -57,6 +57,9 @@ def upgrade_existing_sqlite_schema(db_engine=engine):
             "merchant_id": "INTEGER",
             "provider_name": "VARCHAR(40) NOT NULL DEFAULT 'legacy'",
             "environment": "VARCHAR(16) NOT NULL DEFAULT 'legacy'",
+            "amount_msat": "INTEGER",
+            "buyer_wallet_alias": "VARCHAR(80)",
+            "merchant_wallet_alias": "VARCHAR(80)",
         },
         "risk_checks": {"buyer_user_id": "INTEGER"},
         "payment_invoices": {
@@ -66,6 +69,10 @@ def upgrade_existing_sqlite_schema(db_engine=engine):
             "provider_name": "VARCHAR(40) NOT NULL DEFAULT 'legacy'",
             "environment": "VARCHAR(16) NOT NULL DEFAULT 'legacy'",
             "verified_at": "DATETIME",
+            "amount_msat": "INTEGER",
+            "buyer_wallet_alias": "VARCHAR(80)",
+            "merchant_wallet_alias": "VARCHAR(80)",
+            "payment_attempted_at": "DATETIME",
         },
     }
     inspector = inspect(db_engine)

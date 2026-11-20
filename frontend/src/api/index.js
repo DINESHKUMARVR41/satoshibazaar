@@ -37,6 +37,11 @@ export const getNegotiation = (id) => api.get(`/api/negotiations/${id}`);
 export const approveNegotiation = (id) => api.post(`/api/negotiations/${id}/approve`);
 
 export const createInvoice = (data) => api.post('/api/lightning/invoices', data);
+export const getLightningStatus = () => api.get('/api/lightning/status');
+export const connectAlbyWallets = (data) => api.post('/api/lightning/connect', data);
+export const getWalletBalance = (wallet = 'buyer') => api.get('/api/lightning/balance', { params: { wallet } });
+export const getWalletTransactions = (wallet = 'buyer') => api.get('/api/lightning/transactions', { params: { wallet } });
+export const payInvoice = (id) => api.post(`/api/lightning/invoices/${id}/pay`, { approve: true });
 
 export const checkInvoice = (id) => api.get(`/api/lightning/invoices/${id}`);
 export const simulateInvoicePayment = (id) => api.post(`/api/lightning/invoices/${id}/simulate-payment`);

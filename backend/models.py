@@ -137,6 +137,10 @@ class PaymentInvoice(Base):
     expires_at = Column(DateTime, nullable=True)
     paid_at = Column(DateTime, nullable=True)
     verified_at = Column(DateTime, nullable=True)
+    amount_msat = Column(Integer, nullable=True)
+    buyer_wallet_alias = Column(String(80), nullable=True)
+    merchant_wallet_alias = Column(String(80), nullable=True)
+    payment_attempted_at = Column(DateTime, nullable=True)
 
     __table_args__ = (Index("ix_invoice_id", "invoice_id"),)
 
@@ -158,6 +162,9 @@ class Transaction(Base):
     provider_name = Column(String(40), nullable=False, default="demo_simulator")
     environment = Column(String(16), nullable=False, default="demo")
     verification_status = Column(String, default="unverified")
+    amount_msat = Column(Integer, nullable=True)
+    buyer_wallet_alias = Column(String(80), nullable=True)
+    merchant_wallet_alias = Column(String(80), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (Index("ix_tx_ref", "tx_ref"),)

@@ -115,6 +115,42 @@ def test_authenticated_buyer_demo_purchase_reserves_stock_and_persists_nonpayabl
     })
     assert invoice.status_code == 200
     assert invoice.json()["bolt11"].startswith("DEMO-SIMULATED-NOT-PAYABLE-")
+    duplicate_invoice = client.post("/api/lightning/invoices", headers=headers, json={
+        "negotiation_id": negotiation_id, "amount_sats": 240000, "is_demo": True,
+    })
+    assert duplicate_invoice.status_code == 200
+    assert duplicate_invoice.json()["invoice_id"] == invoice.json()["invoice_id"]
     transactions = client.get("/api/transactions", headers=headers).json()
     assert any(tx["amount_sats"] == 240000 and tx["status"] == "DEMO_INVOICE_CREATED" for tx in transactions)
     assert client.get(f"/api/negotiations/{negotiation_id}").status_code == 401
+
+
+def test_alby_wallet_api_endpoints_are_authenticated_and_redact_credentials(client, monkeypatch):
+    registration = client.post("/api/auth/register", json={
+        "email": "wallet-buyer@example.com", "username": "walletbuyer", "password": "safe-test-password-9", "role": "CUSTOMER",
+    }).json()
+    headers = {"Authorization": f"Bearer {registration['access_token']}"}
+    from routers import lightning
+
+    class FakeWalletProvider:
+        network = "sandbox"
+        configured = True
+        async def status(self):
+            return {"connected": True, "mode": "alby_sandbox", "network": "sandbox", "buyer_wallet": {"alias": "nwc123"}, "merchant_wallet": {"alias": "nwc456"}}
+        async def balance(self, wallet):
+            return {"balance_msat": 12345, "balance_sats": 12.345, "wallet": wallet, "environment": "sandbox"}
+        async def transactions(self, wallet="buyer"):
+            return [{"type": "outgoing", "amount_msat": -1000, "amount_sats": -1, "status": "PAID"}]
+
+    monkeypatch.setattr(lightning, "active_payment_mode", lambda: "alby_sandbox")
+    monkeypatch.setattr(lightning, "build_provider", lambda _mode: FakeWalletProvider())
+    assert client.get("/api/lightning/status").status_code == 401
+    status = client.get("/api/lightning/status", headers=headers)
+    assert status.status_code == 200 and status.json()["connected"]
+    assert status.json()["buyer_wallet"]["alias"] == "nwc123"
+    balance = client.get("/api/lightning/balance", headers=headers)
+    assert balance.status_code == 200 and balance.json()["balance_msat"] == 12345
+    history = client.get("/api/lightning/transactions", headers=headers)
+    assert history.status_code == 200 and history.json()[0]["amount_msat"] == -1000
+    serialized = status.text + balance.text + history.text
+    assert "secret=" not in serialized and "nostr+walletconnect://" not in serialized

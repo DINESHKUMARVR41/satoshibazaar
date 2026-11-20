@@ -6,27 +6,47 @@ from models import Merchant, Product, NostrListing, Transaction, Negotiation
 
 
 def run_seed(db: Session):
+    # Keep built-in sandbox listings small enough for the faucet test wallet.
+    demo_prices = {
+        ("Community Grocery", "Rice 1kg"): 280,
+        ("Community Grocery", "Tomatoes 1kg"): 50,
+        ("Community Grocery", "Sugar 1kg"): 30,
+        ("Community Grocery", "Millet 10kg"): 150,
+        ("Fresh Market Hub", "Rice 1kg"): 270,
+        ("Fresh Market Hub", "Tomatoes 1kg"): 45,
+        ("Fresh Market Hub", "Sugar 1kg"): 28,
+        ("Fresh Market Hub", "Millet 10kg"): 140,
+        ("BioFarm Direct", "Rice 1kg"): 240,
+        ("BioFarm Direct", "Tomatoes 1kg"): 42,
+        ("BioFarm Direct", "Sugar 1kg"): 26,
+        ("BioFarm Direct", "Millet 10kg"): 135,
+    }
     # Only seed if no merchants exist
     if db.query(Merchant).count() > 0:
-        # Migrate the original demo catalog's mislabeled 25kg bags to per-kg
-        # listings without touching merchant-created products or other stock.
-        demo_rice = {
-            "Community Grocery": (28000, 50, "Premium long-grain white rice, price per kg"),
-            "Fresh Market Hub": (27000, 30, "High-quality imported rice, price per kg"),
-            "BioFarm Direct": (24000, 20, "Organic local rice, price per kg"),
-        }
         changed = False
-        for merchant_name, (price, stock, description) in demo_rice.items():
+        for (merchant_name, product_name), price in demo_prices.items():
             product = db.query(Product).join(Merchant).filter(
+                Merchant.name == merchant_name,
+                Product.name == product_name,
+                Product.is_demo.is_(True),
+            ).first()
+            if product and product.price_sats != price:
+                product.price_sats = price
+                changed = True
+        for merchant_name, price in (
+            ("Community Grocery", 280),
+            ("Fresh Market Hub", 270),
+            ("BioFarm Direct", 240),
+        ):
+            legacy = db.query(Product).join(Merchant).filter(
                 Merchant.name == merchant_name,
                 Product.name == "Rice 25kg",
                 Product.is_demo.is_(True),
-                Product.price_sats == price,
             ).first()
-            if product:
-                product.name = "Rice 1kg"
-                product.quantity_available = stock
-                product.description = description
+            if legacy:
+                legacy.name = "Rice 1kg"
+                legacy.price_sats = price
+                legacy.description = "Affordable sandbox rice, price per kg"
                 changed = True
         if changed:
             db.commit()
@@ -72,20 +92,20 @@ def run_seed(db: Session):
     # --- Products ---
     products_data = [
         # Merchant 0: Community Grocery
-        {"merchant_idx": 0, "name": "Rice 1kg", "category": "Grains", "price_sats": 28000, "quantity_available": 50, "description": "Premium long-grain white rice, price per kg"},
-        {"merchant_idx": 0, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 5000, "quantity_available": 50, "description": "Fresh ripe tomatoes, 1kg"},
-        {"merchant_idx": 0, "name": "Sugar 1kg", "category": "Staples", "price_sats": 3000, "quantity_available": 100, "description": "Refined white sugar, 1kg"},
-        {"merchant_idx": 0, "name": "Millet 10kg", "category": "Grains", "price_sats": 15000, "quantity_available": 30, "description": "Local millet, 10kg bag"},
+        {"merchant_idx": 0, "name": "Rice 1kg", "category": "Grains", "price_sats": 280, "quantity_available": 50, "description": "Affordable sandbox rice, price per kg"},
+        {"merchant_idx": 0, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 50, "quantity_available": 50, "description": "Fresh ripe tomatoes, 1kg"},
+        {"merchant_idx": 0, "name": "Sugar 1kg", "category": "Staples", "price_sats": 30, "quantity_available": 100, "description": "Refined white sugar, 1kg"},
+        {"merchant_idx": 0, "name": "Millet 10kg", "category": "Grains", "price_sats": 150, "quantity_available": 30, "description": "Local millet, 10kg bag"},
         # Merchant 1: Fresh Market Hub
-        {"merchant_idx": 1, "name": "Rice 1kg", "category": "Grains", "price_sats": 27000, "quantity_available": 30, "description": "High-quality imported rice, price per kg"},
-        {"merchant_idx": 1, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 4500, "quantity_available": 40, "description": "Market-fresh tomatoes, 1kg"},
-        {"merchant_idx": 1, "name": "Sugar 1kg", "category": "Staples", "price_sats": 2800, "quantity_available": 80, "description": "White granulated sugar, 1kg"},
-        {"merchant_idx": 1, "name": "Millet 10kg", "category": "Grains", "price_sats": 14000, "quantity_available": 25, "description": "Traditional millet, 10kg"},
+        {"merchant_idx": 1, "name": "Rice 1kg", "category": "Grains", "price_sats": 270, "quantity_available": 30, "description": "Affordable sandbox rice, price per kg"},
+        {"merchant_idx": 1, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 45, "quantity_available": 40, "description": "Market-fresh tomatoes, 1kg"},
+        {"merchant_idx": 1, "name": "Sugar 1kg", "category": "Staples", "price_sats": 28, "quantity_available": 80, "description": "White granulated sugar, 1kg"},
+        {"merchant_idx": 1, "name": "Millet 10kg", "category": "Grains", "price_sats": 140, "quantity_available": 25, "description": "Traditional millet, 10kg"},
         # Merchant 2: BioFarm Direct
-        {"merchant_idx": 2, "name": "Rice 1kg", "category": "Grains", "price_sats": 24000, "quantity_available": 20, "description": "Organic local rice, price per kg"},
-        {"merchant_idx": 2, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 4200, "quantity_available": 60, "description": "Organic tomatoes from Thiès, 1kg"},
-        {"merchant_idx": 2, "name": "Sugar 1kg", "category": "Staples", "price_sats": 2600, "quantity_available": 120, "description": "Unrefined cane sugar, 1kg"},
-        {"merchant_idx": 2, "name": "Millet 10kg", "category": "Grains", "price_sats": 13500, "quantity_available": 35, "description": "Organic millet, 10kg"},
+        {"merchant_idx": 2, "name": "Rice 1kg", "category": "Grains", "price_sats": 240, "quantity_available": 20, "description": "Affordable organic sandbox rice, price per kg"},
+        {"merchant_idx": 2, "name": "Tomatoes 1kg", "category": "Vegetables", "price_sats": 42, "quantity_available": 60, "description": "Organic tomatoes from Thiès, 1kg"},
+        {"merchant_idx": 2, "name": "Sugar 1kg", "category": "Staples", "price_sats": 26, "quantity_available": 120, "description": "Unrefined cane sugar, 1kg"},
+        {"merchant_idx": 2, "name": "Millet 10kg", "category": "Grains", "price_sats": 135, "quantity_available": 35, "description": "Organic millet, 10kg"},
     ]
 
     db_products = []

@@ -2,11 +2,11 @@
 
 **Discover locally. Negotiate intelligently. Pay instantly.**
 
-SatoshiBazaar is a local commerce MVP for Dakar, Senegal. It combines a React marketplace, FastAPI backend, SQLite persistence, a deterministic five-agent buying workflow, signed NIP-01 Nostr listings, customer/merchant accounts, inventory reservations, and a safe demo mode with a gated LNbits integration.
+SatoshiBazaar is a local commerce MVP for Dakar, Senegal. It combines a React marketplace, FastAPI backend, SQLite persistence, a deterministic five-agent buying workflow, signed NIP-01 Nostr listings, customer/merchant accounts, inventory reservations, a safe demo mode, Alby NWC faucet sandbox, and gated LNbits testnet/live integrations.
 
 ## Start on Windows 11
 
-Requirements: Python 3.11+, Node.js 20.19+ or 22.12+, npm, and PowerShell.
+Requirements: Python 3.11+, Node.js 20.19+ or 22.12+, npm, and PowerShell. The checked-in `.env.example` selects Alby faucet sandbox and needs two faucet wallet URLs before payments work. To run offline in simulated mode, set `PAYMENT_MODE=demo` in `.env`.
 
 ```powershell
 cd D:\satoshibazaar
@@ -46,7 +46,7 @@ In Negotiation, submit: “I need 10 kg of rice in Dakar for a maximum total of 
 - Registration/login use bcrypt password hashing, expiring HS256 access tokens, revocable database sessions, and CUSTOMER/MERCHANT role checks. Sensitive routes are scoped to the authenticated account; ADMIN is provisioned out of band.
 - Gemini parsing remains optional. To install the provider SDK, activate `backend/.venv` and run `python -m pip install -r requirements-ai.txt`; deterministic parsing works without it.
 - NIP-01 event IDs and Schnorr signatures are verified with coincurve. Relay discovery/publication uses configured WebSockets; merchants sign through a NIP-07 browser extension. A listing is stored as relay-published only after an actual relay acknowledgement. Relay integration has not been live-tested here.
-- Lightning payments support three backend-selected modes: `demo` (default, simulated only), `testnet` (dedicated testnet LNbits wallet), and `live` (separate production LNbits wallet). See [Lightning payment setup](docs/LIGHTNING_SETUP.md) for the required credentials and verification flow. Testnet/live credentials are mode-specific; missing setup never falls back to Demo.
+- Lightning payments support backend-selected `demo`, `testnet`, `live`, and `alby_sandbox` modes. Alby sandbox uses two distinct faucet NWC test wallets for merchant invoice creation and explicitly approved buyer payment; the backend verifies the exact payment independently through the merchant wallet. Configure only backend `.env` credentials. See [Lightning payment setup](docs/LIGHTNING_SETUP.md). Missing setup never falls back to another provider.
 - Merchant inventory is atomically reserved when a customer approves; expired reservations are released on subsequent API requests. Merchant counteroffer/confirmation and settlement workflows are not implemented yet.
 - This is not production-ready: do not expose it publicly until merchant settlement, operational rate limiting, production database migrations, monitoring, and external integration verification are complete.
 

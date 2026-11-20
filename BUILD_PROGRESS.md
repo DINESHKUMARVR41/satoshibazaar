@@ -18,6 +18,7 @@ This is an incremental completion of the existing React/FastAPI project. It is a
 - [x] Atomic inventory reservation on approval, stock conflict rejection, and expiry release on subsequent API requests.
 - [x] NIP-01 canonical event ID and BIP-340 Schnorr validation using coincurve; configurable WebSocket relays; NIP-07 signed product publication; relay acknowledgement checks; verified, deduplicated relay discovery; local marketplace keeps working when relays fail.
 - [x] Separate Demo, Testnet, and Live payment providers selected by backend `PAYMENT_MODE`; dedicated testnet/live credentials, URL/key separation, strict BOLT11 network and amount checks, and no fallback.
+- [x] Async Alby NWC faucet sandbox provider added alongside the existing providers; buyer and merchant wallets are separated and validated, the buyer explicitly approves, duplicate attempts are blocked, and the merchant independently verifies the exact invoice before transaction completion.
 - [x] LNbits incoming invoice request and independent status verification with checking ID and exact amount. Provider intent is persisted before outbound creation; mode is stored on each invoice and transaction. Buyer payment confirmation remains settlement-pending and never marks an order complete.
 - [x] Merchant settlement endpoint with same-network/exact-amount invoice validation, backend-only Admin-key payout, independent outgoing status check, duplicate-send prevention, and ambiguous timeout review state.
 - [x] Merchant UI for NIP-07 publish and Marketplace relay discovery.
@@ -26,7 +27,7 @@ This is an incremental completion of the existing React/FastAPI project. It is a
 
 ## Current verification
 
-- [x] Backend suite includes authentication/authorization, authenticated rice purchase, inventory reservation, Nostr checks, mocked LNbits network/amount/status validation, expired invoices, duplicate simulation/status checks, and successful/failed merchant settlement checks (20 passed).
+- [x] Backend suite: authentication/authorization, authenticated rice purchase, inventory reservation, Nostr checks, mocked LNbits network/amount/status validation, Alby URI/API/wallet/payment verification and ambiguous duplicate prevention, expired invoices, and merchant settlement checks (34 passed).
 - [x] Frontend production build succeeds after auth, Nostr, and payment mode updates.
 - [ ] Full account and browser smoke check after the mode changes remains pending.
 - [ ] Windows setup/run scripts parse check and clean extraction test are pending.
@@ -38,7 +39,7 @@ This is an incremental completion of the existing React/FastAPI project. It is a
 - [ ] Refunds and escrow are not implemented. Ambiguous payout timeouts require manual LNbits reconciliation.
 - [ ] Testnet/live were not connected to actual wallets in this environment. Configure their dedicated credentials before use; no testnet or live payment has been made or verified here.
 - [ ] Nostr relay connectivity and publication were not live-tested here. Nostr publishing requires a usable NIP-07 extension in the browser.
-- [x] LNbits integration paths were tested with mocked requests; actual wallet/backend connectivity still requires dedicated credentials and testnet/live verification.
+- [ ] Alby NWC client calls are covered by mocks and the installed package API/URI parser was inspected. A real Alby faucet-to-faucet payment has not been run in this environment.
 - [ ] Frontend automated tests, accessibility/browser automation, product image upload, profile editing, and account recovery are missing.
 - [ ] No Alembic migration environment yet. SQLite additive migration is local-only; PostgreSQL compatibility and concurrency have not been tested.
 - [ ] Admin is not self-registrable and must be provisioned out of band; there is no admin management UI.

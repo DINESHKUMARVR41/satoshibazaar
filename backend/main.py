@@ -67,7 +67,7 @@ def health():
     mode = active_payment_mode()
     provider = build_provider(mode)
     configured = provider.configured
-    blockers = [] if mode == "demo" else ([] if configured else [f"Configure the dedicated {mode} LNbits URL, invoice key, and Admin key."])
+    blockers = [] if mode == "demo" or configured else (["Configure two distinct Alby faucet NWC wallet URLs."] if mode == "alby_sandbox" else [f"Configure the dedicated {mode} LNbits URL, invoice key, and Admin key."])
     return {
         "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -76,11 +76,12 @@ def health():
         "demo_mode": mode == "demo",
         "payment_provider_configured": configured,
         "payment_network": provider.network,
-        "payment_settlement_enabled": configured if mode != "demo" else True,
+        "wallet_configuration_available": mode == "alby_sandbox" and os.getenv("APP_ENV", "development").lower() == "development",
+        "payment_settlement_enabled": configured if mode not in {"demo", "alby_sandbox"} else mode == "demo",
         "payment_mode_blockers": blockers,
         "version": "1.0.0",
         "services": {
-            "lightning": "simulated" if mode == "demo" else f"lnbits_{mode}_{'configured' if configured else 'unconfigured'}",
+            "lightning": "simulated" if mode == "demo" else f"alby_nwc_sandbox_{'configured' if configured else 'unconfigured'}" if mode == "alby_sandbox" else f"lnbits_{mode}_{'configured' if configured else 'unconfigured'}",
             "nostr": "demo",
             "ai": "gemini" if os.getenv("GEMINI_API_KEY") else "fallback"
         }

@@ -15,3 +15,4 @@ bcrypt==4.2.1
 python-jose[cryptography]==3.3.0
 email-validator==2.2.0
 coincurve==21.0.0
+aionwc==0.2.0

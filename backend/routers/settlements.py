@@ -85,6 +85,8 @@ def submit_settlement(
     transaction = _merchant_transaction(transaction_id, db, user)
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    if transaction.mode == "alby_sandbox":
+        raise HTTPException(status_code=409, detail="Alby sandbox pays the merchant wallet invoice directly; no second settlement is due.")
     existing = db.query(PaymentSettlement).filter(PaymentSettlement.transaction_id == transaction.id).first()
     if existing:
         return _out(_verify_settlement(existing, transaction, db))
