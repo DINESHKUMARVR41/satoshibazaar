@@ -1,0 +1,2 @@
+# Optional Gemini parser. Install separately when using GEMINI_API_KEY.
+google-generativeai==0.7.2

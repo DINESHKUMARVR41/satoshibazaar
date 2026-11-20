@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: satoshibazaar-api
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        generateValue: false
+        value: sqlite:///./satoshibazaar.db
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PAYMENT_MODE
+        value: demo
+      - key: LNBITS_TESTNET_URL
+        sync: false
+      - key: LNBITS_TESTNET_INVOICE_KEY
+        sync: false
+      - key: LNBITS_TESTNET_ADMIN_KEY
+        sync: false
+      - key: LNBITS_LIVE_URL
+        sync: false
+      - key: LNBITS_LIVE_INVOICE_KEY
+        sync: false
+      - key: LNBITS_LIVE_ADMIN_KEY
+        sync: false
+      - key: NOSTR_RELAY_URL
+        value: wss://relay.damus.io
+      - key: MAX_TRANSACTION_SATS
+        value: "1000000"
